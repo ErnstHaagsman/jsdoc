@@ -9,7 +9,8 @@ exports.defineTags = function(dictionary){
 };
 
 exports.handlers = {
-    processingComplete: function(docs) {
+    processingComplete: function(doclets) {
+        var docs = doclets.doclets;
         var dependencies = mapDependencies(docs.index);
         var sorted = sort(dependencies);
         var longnames = [];
