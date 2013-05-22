@@ -153,7 +153,12 @@ function main() {
     var packageJson;
     var sourceFiles;
     var template;
-
+    var configTime;
+    var scanTime;
+    var parseTime;
+    var indexTime;
+    var templateTime;
+    var diff;
 
     defaultOpts = {
         destination: './out/',
@@ -166,6 +171,9 @@ function main() {
         number: info.version,
         revision: new Date(parseInt(info.revision, 10)).toUTCString()
     };
+
+    console.log('Loading Configuration');
+    configTime = (new Date()).getTime();
 
     env.opts = jsdoc.opts.args.parse(env.args);
 
@@ -216,6 +224,11 @@ function main() {
             env.opts._.splice(i--, 1);
         }
     }
+
+    scanTime = (new Date()).getTime();
+    diff = scanTime - configTime;
+    console.log('Finished loading config [' + diff + 'ms]');
+    console.log('Starting scan');
     
     if (env.conf.source && env.opts._.length > 0) { // are there any files to scan and parse?
         filter = new jsdoc.src.filter.Filter(env.conf.source);
@@ -224,6 +237,11 @@ function main() {
 
         jsdoc.src.handlers.attachTo(app.jsdoc.parser);
 
+        parseTime = (new Date()).getTime();
+        diff = parseTime - scanTime;
+        console.log('Finished scan [' + diff + 'ms]');
+        console.log('Starting parse');
+
         docs = app.jsdoc.parser.parse(sourceFiles, env.opts.encoding);
 
         //The files are ALWAYS useful for the templates to have
@@ -231,6 +249,11 @@ function main() {
         packageDocs = new jsdoc.package.Package(packageJson);
         packageDocs.files = sourceFiles || [];
         docs.push(packageDocs);
+
+        indexTime = (new Date()).getTime();
+        diff = indexTime - parseTime;
+        console.log('Finished parse [' + diff + 'ms]');
+        console.log('Starting post-processing');
 
         jsdoc.borrow.indexAll(docs);
 
@@ -259,6 +282,11 @@ function main() {
         catch(e) {
             throw new Error('Unable to load template: ' + e.message || e);
         }
+
+        templateTime = (new Date()).getTime();
+        diff = templateTime -indexTime;
+        console.log('Finished post-processing [' + diff + 'ms]');
+        console.log('Running template');
 
         // templates should include a publish.js file that exports a "publish" function
         if (template.publish && typeof template.publish === 'function') {
@@ -289,6 +317,9 @@ function main() {
                 throw new Error( env.opts.template + ' does not export a "publish" function.' );
             }
         }
+
+        diff = (new Date()).getTime() - templateTime;
+        console.log('Finished template [' + diff + 'ms]');
     }
 }
 
