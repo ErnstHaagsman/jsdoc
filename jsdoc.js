@@ -322,6 +322,7 @@ function main() {
 
         diff = (new Date()).getTime() - templateTime;
         console.log('Finished template [' + diff + 'ms]');
+        console.log('Finished ' + new Date().toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, "$1"));
     }
 }
 
